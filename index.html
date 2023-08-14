@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schere-Stein-Papier-Emojis</title>
+    <style>
+
+        .emoji {
+            position: absolute;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <label for="emoji-count">Anzahl der Emojis:</label>
+    <input type="number" id="emoji-count" value="50">
+    <button id="start">Start</button>
+    <div id="emojis"></div>
+    <button id="reset">Reset</button>
+
+    <script>
+
+        const emojiCountInput = document.querySelector('#emoji-count');
+        const startButton = document.querySelector('#start');
+        const emojisContainer = document.querySelector('#emojis');
+        const resetButton = document.querySelector('#reset');
+
+        startButton.addEventListener('click', () => {
+
+            emojisContainer.innerHTML = '';
+
+
+            const emojiCount = parseInt(emojiCountInput.value);
+            for (let i = 0; i < emojiCount; i++) {
+                emojisContainer.innerHTML += '<div class="emoji scissors">✂️</div>';
+                emojisContainer.innerHTML += '<div class="emoji rock">🪨</div>';
+                emojisContainer.innerHTML += '<div class="emoji paper">📄</div>';
+            }
+
+            const emojis = document.querySelectorAll('.emoji');
+
+            // Psotion Reset
+            const scissors = document.querySelectorAll('.scissors');
+            scissors.forEach(emoji => {
+                emoji.x = 0;
+                emoji.y = window.innerHeight;
+            });
+            const rocks = document.querySelectorAll('.rock');
+            rocks.forEach(emoji => {
+                emoji.x = window.innerWidth;
+                emoji.y = window.innerHeight;
+            });
+            const papers = document.querySelectorAll('.paper');
+            papers.forEach(emoji => {
+                emoji.x = window.innerWidth;
+                emoji.y = 0;
+            });
+
+            function moveEmojis() {
+                emojis.forEach(emoji => {
+                    // speed
+                    if (!emoji.vx) emoji.vx = Math.random() * 10 - 5;
+                    if (!emoji.vy) emoji.vy = Math.random() * 10 - 5;
+
+                    emoji.x += emoji.vx;
+                    emoji.y += emoji.vy;
+
+                    // abprallen
+                    if (emoji.x < 0 || emoji.x > window.innerWidth) emoji.vx = -emoji.vx;
+                    if (emoji.y < 0 || emoji.y > window.innerHeight) emoji.vy = -emoji.vy;
+
+                    //Position im DOM
+                    emoji.style.left = emoji.x + 'px';
+                    emoji.style.top = emoji.y + 'px';
+                });
+            }
+
+            
+            function checkCollision(emoji1, emoji2) {
+                const rect1 = emoji1.getBoundingClientRect();
+                const rect2 = emoji2.getBoundingClientRect();
+                return !(rect1.right < rect2.left || 
+                         rect1.left > rect2.right || 
+                         rect1.bottom < rect2.top || 
+                         rect1.top > rect2.bottom);
+            }
+
+           
+            function updateState(emoji1, emoji2) {
+                const emojis = ['✂️', '🪨', '📄'];
+                const index1 = emojis.indexOf(emoji1.textContent);
+                const index2 = emojis.indexOf(emoji2.textContent);
+                if (index1 === index2) return; // unentschieden
+                if ((index1 + 1) % 3 === index2) {
+                    // emoji2 gewinnt
+                    if (!emoji1.locked) {
+                        emoji2.textContent = emojis[(index2 + 1) % 3];
+                        // loser lock 
+                        emoji1.locked = true;
+                        setTimeout(() => delete emoji1.locked, 1000);
+                    }
+                } else {
+                    // emoji1 gewinnt
+                    if (!emoji2.locked) {
+                        emoji1.textContent = emojis[(index1 + 1) % 3];
+                        // loser lock
+                        emoji2.locked = true;
+                        setTimeout(() => delete emoji2.locked, 1000);
+                    }
+                }
+            }
+
+ 
+            function resetEmojis() {
+                emojis.forEach(emoji => {
+                    delete emoji.x;
+                    delete emoji.y;
+                    delete emoji.vx;
+                    delete emoji.vy;
+                    delete emoji.locked;
+                });
+            }
+
+            resetButton.addEventListener('click', resetEmojis);
+
+            setInterval(() => {
+                moveEmojis();
+                for (let i = 0; i < emojis.length; i++) {
+                    for (let j = i + 1; j < emojis.length; j++) {
+                        if (checkCollision(emojis[i], emojis[j])) {
+                            updateState(emojis[i], emojis[j]);
+                        }
+                    }
+                }
+            }, 100);
+        });
+
+        function handleResize() {
+            const emojis = document.querySelectorAll('.emoji');
+            emojis.forEach(emoji => {
+                if (emoji.x > window.innerWidth) emoji.x = window.innerWidth;
+                if (emoji.y > window.innerHeight) emoji.y = window.innerHeight;
+            });
+        }
+
+        window.addEventListener('resize', handleResize);
+    </script>
+</body>
+</html>
