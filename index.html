@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Schere-Stein-Papier-Emojis</title>
+    <title>SSP-Screensaver</title>
     <style>
 
         .emoji {
@@ -39,37 +39,20 @@
 
             const emojis = document.querySelectorAll('.emoji');
 
-            // Potsiton Reset
-            const scissors = document.querySelectorAll('.scissors');
-            scissors.forEach(emoji => {
-                emoji.x = 0;
-                emoji.y = window.innerHeight;
-            });
-            const rocks = document.querySelectorAll('.rock');
-            rocks.forEach(emoji => {
-                emoji.x = window.innerWidth;
-                emoji.y = window.innerHeight;
-            });
-            const papers = document.querySelectorAll('.paper');
-            papers.forEach(emoji => {
-                emoji.x = window.innerWidth;
-                emoji.y = 0;
-            });
 
             function moveEmojis() {
                 emojis.forEach(emoji => {
-                    // speed
+                    if (!emoji.x) emoji.x = Math.random() * window.innerWidth;
+                    if (!emoji.y) emoji.y = Math.random() * window.innerHeight;        
                     if (!emoji.vx) emoji.vx = Math.random() * 10 - 5;
                     if (!emoji.vy) emoji.vy = Math.random() * 10 - 5;
-
+                    
                     emoji.x += emoji.vx;
                     emoji.y += emoji.vy;
 
-                    // abprallen
                     if (emoji.x < 0 || emoji.x > window.innerWidth) emoji.vx = -emoji.vx;
                     if (emoji.y < 0 || emoji.y > window.innerHeight) emoji.vy = -emoji.vy;
 
-                    //Position im DOM
                     emoji.style.left = emoji.x + 'px';
                     emoji.style.top = emoji.y + 'px';
                 });
