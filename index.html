@@ -3,15 +3,28 @@
 <head>
     <title>SSP-Screensaver</title>
     <style>
-        body {
+                body {
             background-color: black;
             color: white;
         }
+
         .emoji {
             position: absolute;
             font-size: 24px;
         }
-         #form-container {
+        #navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #8585ad;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        #form-container {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -23,23 +36,46 @@
     </style>
 </head>
 <body>
- <div id="form-container">
-     <label for="emoji-count">Anzahl der Emojis:</label>
-     <input type="number" id="emoji-count" value="50">
-     <button id="start">Start</button>
-  </div>
+
+    <div id="navbar">      
+        <div>
+            <button id="reset">Reset</button>
+            <button id="pause">Pause</button>
+            <button id="play">Play</button>
+        </div>
+    
+        <div id="counters">
+            <span>✂️ <span id="scissors-count">0</span></span>
+            <span>🪨 <span id="rock-count">0</span></span>
+            <span>📄 <span id="paper-count">0</span></span>
+        </div>
+    </div>
+
+    <div id="form-container">
+        <label for="emoji-count">Anzahl der Emojis:</label>
+        <input type="number" id="emoji-count" value="50">
+        <button id="start">Start</button>
+    </div>
     <div id="emojis"></div>
-    <button id="reset">Reset</button>
+   
 
     <script>
+        const navbar = document.querySelector('#navbar');
         const formContainer = document.querySelector('#form-container');
         const emojiCountInput = document.querySelector('#emoji-count');
         const startButton = document.querySelector('#start');
         const emojisContainer = document.querySelector('#emojis');
         const resetButton = document.querySelector('#reset');
+        const pauseButton = document.querySelector('#pause');
+        const playButton = document.querySelector('#play');
+        const scissorsCountElement = document.querySelector('#scissors-count');
+        const rockCountElement = document.querySelector('#rock-count');
+        const paperCountElement = document.querySelector('#paper-count');
+        let interval;
 
         startButton.addEventListener('click', () => {
             formContainer.classList.add('hidden');
+
             emojisContainer.innerHTML = '';
 
             const emojiCount = parseInt(emojiCountInput.value);
@@ -51,26 +87,25 @@
 
             const emojis = document.querySelectorAll('.emoji');
 
-
             function moveEmojis() {
                 emojis.forEach(emoji => {
                     if (!emoji.x) emoji.x = Math.random() * window.innerWidth;
-                    if (!emoji.y) emoji.y = Math.random() * window.innerHeight;        
+                    if (!emoji.y) emoji.y = Math.random() * (window.innerHeight - navbar.offsetHeight) + navbar.offsetHeight;
                     if (!emoji.vx) emoji.vx = Math.random() * 10 - 5;
                     if (!emoji.vy) emoji.vy = Math.random() * 10 - 5;
-                    
+
                     emoji.x += emoji.vx;
                     emoji.y += emoji.vy;
 
+                    // abprallen vom Bild
                     if (emoji.x < 0 || emoji.x > window.innerWidth) emoji.vx = -emoji.vx;
-                    if (emoji.y < 0 || emoji.y > window.innerHeight) emoji.vy = -emoji.vy;
+                    if (emoji.y < navbar.offsetHeight || emoji.y > window.innerHeight) emoji.vy = -emoji.vy;
 
                     emoji.style.left = emoji.x + 'px';
                     emoji.style.top = emoji.y + 'px';
                 });
             }
 
-            
             function checkCollision(emoji1, emoji2) {
                 const rect1 = emoji1.getBoundingClientRect();
                 const rect2 = emoji2.getBoundingClientRect();
@@ -94,8 +129,17 @@
                 } else if (emoji1.textContent === '🪨' && emoji2.textContent === '📄') {
                     emoji1.textContent = '📄';
                 }
-            }           
-            
+            }
+
+            function updateCounters() {
+                const scissorsCount = document.querySelectorAll('.scissors').length;
+                const rockCount = document.querySelectorAll('.rock').length;
+                const paperCount = document.querySelectorAll('.paper').length;
+                scissorsCountElement.textContent = scissorsCount;
+                rockCountElement.textContent = rockCount;
+                paperCountElement.textContent = paperCount;
+            }
+
             function resetEmojis() {
                 emojis.forEach(emoji => {
                     delete emoji.x;
@@ -106,15 +150,34 @@
                 });
             }
 
-
-           resetButton.addEventListener('click', () => {
+            resetButton.addEventListener('click', () => {
 
                 formContainer.classList.remove('hidden');
                 emojisContainer.innerHTML = '';
                 clearInterval(interval);
+                
+            });
+            pauseButton.addEventListener('click', () => {
+                
+                clearInterval(interval);
             });
 
-            setInterval(() => {
+            playButton.addEventListener('click', () => {
+                
+                interval = setInterval(() => {
+                    moveEmojis();
+                    for (let i = 0; i < emojis.length; i++) {
+                        for (let j = i + 1; j < emojis.length; j++) {
+                            if (checkCollision(emojis[i], emojis[j])) {
+                                updateState(emojis[i], emojis[j]);
+                            }
+                        }
+                    }
+                    updateCounters();
+                }, 100);
+            });
+
+            internal = setInterval(() => {
                 moveEmojis();
                 for (let i = 0; i < emojis.length; i++) {
                     for (let j = i + 1; j < emojis.length; j++) {
@@ -123,14 +186,15 @@
                         }
                     }
                 }
+                updateCounters();
             }, 100);
         });
-        
+
         function handleResize() {
             const emojis = document.querySelectorAll('.emoji');
             emojis.forEach(emoji => {
                 if (emoji.x > window.innerWidth) emoji.x = window.innerWidth;
-                if (emoji.y > window.innerHeight) emoji.y = window.innerHeight;
+                if (emoji.y > window.innerHeight) emoji.y = window.innerHeight - navbar.offsetHeight;
             });
         }
 
