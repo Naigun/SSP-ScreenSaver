@@ -3,18 +3,31 @@
 <head>
     <title>SSP-Screensaver</title>
     <style>
-
+        body {
+            background-color: black;
+            color: white;
+        }
         .emoji {
             position: absolute;
             font-size: 24px;
         }
+         #form-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #form-container.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-
-    <label for="emoji-count">Anzahl der Emojis:</label>
-    <input type="number" id="emoji-count" value="50">
-    <button id="start">Start</button>
+ <div id="form-container">
+     <label for="emoji-count">Anzahl der Emojis:</label>
+     <input type="number" id="emoji-count" value="50">
+     <button id="start">Start</button>
+  </div>
     <div id="emojis"></div>
     <button id="reset">Reset</button>
 
@@ -26,9 +39,8 @@
         const resetButton = document.querySelector('#reset');
 
         startButton.addEventListener('click', () => {
-
+            formContainer.classList.add('hidden');
             emojisContainer.innerHTML = '';
-
 
             const emojiCount = parseInt(emojiCountInput.value);
             for (let i = 0; i < emojiCount; i++) {
@@ -94,7 +106,13 @@
                 });
             }
 
-            resetButton.addEventListener('click', resetEmojis);
+
+           resetButton.addEventListener('click', () => {
+
+                formContainer.classList.remove('hidden');
+                emojisContainer.innerHTML = '';
+                clearInterval(interval);
+            });
 
             setInterval(() => {
                 moveEmojis();
