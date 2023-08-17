@@ -39,7 +39,7 @@
 
             const emojis = document.querySelectorAll('.emoji');
 
-            // Psotion Reset
+            // Potsiton Reset
             const scissors = document.querySelectorAll('.scissors');
             scissors.forEach(emoji => {
                 emoji.x = 0;
@@ -85,32 +85,22 @@
                          rect1.top > rect2.bottom);
             }
 
-           
             function updateState(emoji1, emoji2) {
-                const emojis = ['✂️', '🪨', '📄'];
-                const index1 = emojis.indexOf(emoji1.textContent);
-                const index2 = emojis.indexOf(emoji2.textContent);
-                if (index1 === index2) return; // unentschieden
-                if ((index1 + 1) % 3 === index2) {
-                    // emoji2 gewinnt
-                    if (!emoji1.locked) {
-                        emoji2.textContent = emojis[(index2 + 1) % 3];
-                        // loser lock 
-                        emoji1.locked = true;
-                        setTimeout(() => delete emoji1.locked, 1000);
-                    }
-                } else {
-                    // emoji1 gewinnt
-                    if (!emoji2.locked) {
-                        emoji1.textContent = emojis[(index1 + 1) % 3];
-                        // loser lock
-                        emoji2.locked = true;
-                        setTimeout(() => delete emoji2.locked, 1000);
-                    }
+                if (emoji1.textContent === '✂️' && emoji2.textContent === '📄') {
+                    emoji2.textContent = '✂️';
+                } else if (emoji1.textContent === '📄' && emoji2.textContent === '✂️') {
+                    emoji1.textContent = '✂️';
+                } else if (emoji1.textContent === '🪨' && emoji2.textContent === '✂️') {
+                    emoji2.textContent = '🪨';
+                } else if (emoji1.textContent === '✂️' && emoji2.textContent === '🪨') {
+                    emoji1.textContent = '🪨';
+                } else if (emoji1.textContent === '📄' && emoji2.textContent === '🪨') {
+                    emoji2.textContent = '📄';
+                } else if (emoji1.textContent === '🪨' && emoji2.textContent === '📄') {
+                    emoji1.textContent = '📄';
                 }
-            }
-
- 
+            }           
+            
             function resetEmojis() {
                 emojis.forEach(emoji => {
                     delete emoji.x;
@@ -134,7 +124,7 @@
                 }
             }, 100);
         });
-
+        
         function handleResize() {
             const emojis = document.querySelectorAll('.emoji');
             emojis.forEach(emoji => {
