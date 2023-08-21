@@ -128,16 +128,22 @@
             function updateState(emoji1, emoji2) {
                 if (emoji1.textContent === '✂️' && emoji2.textContent === '📄') {
                     emoji2.textContent = '✂️';
+                    emoji2.className = "emoji scissors";
                 } else if (emoji1.textContent === '📄' && emoji2.textContent === '✂️') {
                     emoji1.textContent = '✂️';
+                    emoji1.className = "emoji scissors";
                 } else if (emoji1.textContent === '🪨' && emoji2.textContent === '✂️') {
                     emoji2.textContent = '🪨';
+                    emoji2.className = "eomji rock";
                 } else if (emoji1.textContent === '✂️' && emoji2.textContent === '🪨') {
                     emoji1.textContent = '🪨';
+                    emoji1.className = "emoji rock";
                 } else if (emoji1.textContent === '📄' && emoji2.textContent === '🪨') {
                     emoji2.textContent = '📄';
+                    emoji2.className = "emoji paper";
                 } else if (emoji1.textContent === '🪨' && emoji2.textContent === '📄') {
                     emoji1.textContent = '📄';
+                    emoji1.className = "emoji paper";
                 }
             }
 
