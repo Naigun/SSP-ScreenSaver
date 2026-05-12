@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -6,8 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital@1&display=swap" rel="stylesheet">
-    
+
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
         body {
             background-color: black;
             color: white;
@@ -16,242 +19,557 @@
             margin: 0;
         }
 
+        /* ── Emojis ── */
         .emoji {
             position: absolute;
             font-size: 24px;
+            user-select: none;
+            pointer-events: none;
         }
 
+        @keyframes convert-flash {
+            0%   { transform: scale(1);   filter: brightness(1); }
+            40%  { transform: scale(2);   filter: brightness(3); }
+            100% { transform: scale(1);   filter: brightness(1); }
+        }
+        .emoji.converting {
+            animation: convert-flash 0.35s ease-out forwards;
+        }
+
+        /* ── Navbar ── */
         #navbar {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             width: 100%;
             height: 50px;
             background-color: #565668;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
+            padding: 0 16px;
+            gap: 8px;
+            z-index: 10;
         }
 
+        #navbar-left  { display: flex; gap: 6px; }
+        #navbar-right { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+
+        #counters { margin: 0 auto; font-size: 15px; }
+        #counters span { margin: 0 8px; }
+
+        button {
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: none;
+            font-family: inherit;
+            background: #d0d0e0;
+            color: #111;
+        }
+        button:hover:not(:disabled) { background: #e8e8f5; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        #speed-slider-nav { width: 90px; }
+
+        /* ── Form ── */
         #form-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
+            text-align: center;
+            background: #1a1a2e;
+            border: 1px solid #565668;
+            border-radius: 12px;
+            padding: 28px 36px;
+            min-width: 340px;
+        }
+
+        #form-container h2 { margin: 0 0 20px; font-size: 18px; letter-spacing: 1px; }
+
+        .type-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 8px 0;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .type-row .type-icon { font-size: 22px; width: 32px; text-align: center; }
+        .type-row input[type=number] {
+            width: 80px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #565668;
+            background: #0d0d1a;
+            color: white;
+            font-family: inherit;
             text-align: center;
         }
 
-        #form-container.hidden {
-            display: none;
+        .speed-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 14px 0 6px;
+            gap: 10px;
+            font-size: 13px;
         }
+        .speed-row input[type=range] { flex: 1; }
+        .speed-row .val { min-width: 18px; text-align: right; }
 
+        .options-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0 2px;
+            font-size: 13px;
+            text-align: left;
+        }
+        .options-row label { cursor: pointer; }
+
+        #start-btn {
+            margin-top: 20px;
+            padding: 9px 32px;
+            font-size: 15px;
+            background: #565668;
+            color: white;
+            border-radius: 6px;
+        }
+        #start-btn:hover { background: #6d6e85; }
+
+        #form-container.hidden { display: none; }
+
+        /* ── Winner ── */
         #winner-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            padding: 20px 20px;
-            border-radius: 8px;
-            background-color: gold;
+            padding: 28px 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, gold, #f5c518);
             color: black;
-            z-index: 1; 
+            z-index: 20;
+            box-shadow: 0 0 48px rgba(255, 215, 0, 0.65);
+            animation: winner-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #counters {
-            margin: auto;
+        @keyframes winner-pop {
+            from { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+            to   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
         }
 
-        #winner {
-            font-size: 40px;
-        }
+        #winner       { font-size: 60px; display: block; margin-bottom: 6px; }
+        #winner-label { font-size: 22px; font-weight: bold; }
 
-        .hidden {
-            display: none;
+        .hidden { display: none; }
+
+        /* ── Progress bar ── */
+        #progress-bar-container {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%;
+            height: 6px;
+            display: flex;
         }
+        #bar-scissors { background: #e74c3c; height: 100%; transition: width 0.12s; }
+        #bar-rock     { background: #95a5a6; height: 100%; transition: width 0.12s; }
+        #bar-paper    { background: #3498db; height: 100%; transition: width 0.12s; }
     </style>
 </head>
 <body>
-    <div id="navbar">      
-        <div>
-            <button id="reset" disabled>Reset</button>
+
+    <div id="navbar">
+        <div id="navbar-left">
+            <button id="reset-btn" disabled>Reset</button>
+            <button id="pause-btn" disabled>⏸ Pause</button>
         </div>
-    
+
         <div id="counters">
             <span>✂️ <span id="scissors-count">0</span></span>
             <span>🪨 <span id="rock-count">0</span></span>
             <span>📄 <span id="paper-count">0</span></span>
         </div>
+
+        <div id="navbar-right">
+            Geschwindigkeit:
+            <input type="range" id="speed-slider-nav" min="1" max="15" value="5">
+        </div>
     </div>
 
+    <!-- Start Form -->
     <div id="form-container">
-        <label for="emoji-count">Anzahl der Emojis:</label>
-        <input type="number" id="emoji-count" value="50">
-        <button id="start">Start</button>
+        <h2>⚔️ SSP Screensaver</h2>
+
+        <div class="type-row">
+            <span class="type-icon">✂️</span>
+            <span>Scheren:</span>
+            <input type="number" id="count-scissors" value="20" min="0" max="200">
+        </div>
+        <div class="type-row">
+            <span class="type-icon">🪨</span>
+            <span>Steine:</span>
+            <input type="number" id="count-rock" value="20" min="0" max="200">
+        </div>
+        <div class="type-row">
+            <span class="type-icon">📄</span>
+            <span>Papier:</span>
+            <input type="number" id="count-paper" value="20" min="0" max="200">
+        </div>
+
+        <div class="speed-row">
+            <span>Geschwindigkeit:</span>
+            <input type="range" id="form-speed" min="1" max="15" value="5">
+            <span class="val" id="form-speed-val">5</span>
+        </div>
+
+        <div class="options-row">
+            <input type="checkbox" id="chase-mode">
+            <label for="chase-mode">🎯 Jagd-Modus – Emojis jagen ihre Beute &amp; fliehen vor Feinden</label>
+        </div>
+
+        <button id="start-btn">▶ Start</button>
     </div>
 
+    <!-- Winner overlay -->
     <div id="winner-container" class="hidden"></div>
-    
+
+    <!-- Emoji field -->
     <div id="emojis"></div>
 
+    <!-- Population bar -->
+    <div id="progress-bar-container" class="hidden">
+        <div id="bar-scissors"></div>
+        <div id="bar-rock"></div>
+        <div id="bar-paper"></div>
+    </div>
+
     <script>
-        const navbar = document.querySelector('#navbar');
-        const formContainer = document.querySelector('#form-container');
-        const winnerContainer = document.querySelector('#winner-container');
-        const emojiCountInput = document.querySelector('#emoji-count');
-        const startButton = document.querySelector('#start');
-        const resetButton = document.querySelector('#reset');
-        const emojisContainer = document.querySelector('#emojis');
-        const scissorsCountElement = document.querySelector('#scissors-count');
-        const rockCountElement = document.querySelector('#rock-count');
-        const paperCountElement = document.querySelector('#paper-count');
-        let animationId;
+        // ── DOM refs ──────────────────────────────────────────────────────────
+        const navbar          = document.getElementById('navbar');
+        const formContainer   = document.getElementById('form-container');
+        const winnerContainer = document.getElementById('winner-container');
+        const emojisContainer = document.getElementById('emojis');
+        const startBtn        = document.getElementById('start-btn');
+        const resetBtn        = document.getElementById('reset-btn');
+        const pauseBtn        = document.getElementById('pause-btn');
+        const speedSliderNav  = document.getElementById('speed-slider-nav');
+        const formSpeed       = document.getElementById('form-speed');
+        const formSpeedVal    = document.getElementById('form-speed-val');
+        const chaseModeCheck  = document.getElementById('chase-mode');
+        const scissorsCountEl = document.getElementById('scissors-count');
+        const rockCountEl     = document.getElementById('rock-count');
+        const paperCountEl    = document.getElementById('paper-count');
+        const progressBar     = document.getElementById('progress-bar-container');
+        const barScissors     = document.getElementById('bar-scissors');
+        const barRock         = document.getElementById('bar-rock');
+        const barPaper        = document.getElementById('bar-paper');
 
-        startButton.addEventListener('click', startAnimation);
-        resetButton.addEventListener('click', resetAnimation);
+        // ── Game rules ────────────────────────────────────────────────────────
+        // BEATS[x] = the type that x defeats
+        const BEATS   = { scissors: 'paper',   rock: 'scissors', paper: 'rock'     };
+        const PREY_OF = { scissors: 'rock',     rock: 'paper',    paper: 'scissors' };
+        const CHAR    = { scissors: '✂️',       rock: '🪨',       paper: '📄'      };
 
+        // ── Runtime state ─────────────────────────────────────────────────────
+        let animationId = null;
+        let paused      = false;
+        let chaseMode   = false;
+        let baseSpeed   = 5;
+        // Each entry: { el: HTMLElement, x, y, vx, vy, type }
+        let emojiData   = [];
+        let counts      = { scissors: 0, rock: 0, paper: 0 };
+
+        // ── Form speed display ────────────────────────────────────────────────
+        formSpeed.addEventListener('input', () => {
+            formSpeedVal.textContent = formSpeed.value;
+            speedSliderNav.value     = formSpeed.value;
+        });
+
+        speedSliderNav.addEventListener('input', () => {
+            baseSpeed = parseInt(speedSliderNav.value);
+        });
+
+        // ── Control buttons ───────────────────────────────────────────────────
+        startBtn.addEventListener('click', startAnimation);
+        resetBtn.addEventListener('click', resetAnimation);
+        pauseBtn.addEventListener('click', togglePause);
+
+        // ── Start ─────────────────────────────────────────────────────────────
         function startAnimation() {
+            const nScissors = clampCount(document.getElementById('count-scissors').value);
+            const nRock     = clampCount(document.getElementById('count-rock').value);
+            const nPaper    = clampCount(document.getElementById('count-paper').value);
+
+            if (nScissors + nRock + nPaper < 2) {
+                alert('Bitte mindestens 2 Emojis insgesamt einstellen.');
+                return;
+            }
+
+            baseSpeed = parseInt(formSpeed.value);
+            speedSliderNav.value = baseSpeed;
+            chaseMode = chaseModeCheck.checked;
+
             formContainer.classList.add('hidden');
-            resetButton.disabled = false;
-
-            emojisContainer.innerHTML = '';
-            const emojiCount = parseInt(emojiCountInput.value);
-
-            for (let i = 0; i < emojiCount; i++) {
-                emojisContainer.innerHTML += '<div class="emoji scissors">✂️</div>';
-                emojisContainer.innerHTML += '<div class="emoji rock">🪨</div>';
-                emojisContainer.innerHTML += '<div class="emoji paper">📄</div>';
-            }
-
-            const emojis = document.querySelectorAll('.emoji');
-
-            function moveEmojis() {
-                emojis.forEach(emoji => {
-                    if (!emoji.x) emoji.x = Math.random() * window.innerWidth;
-                    if (!emoji.y) emoji.y = Math.random() * (window.innerHeight - navbar.offsetHeight) + navbar.offsetHeight;
-                    if (!emoji.vx) emoji.vx = Math.random() * 10 - 5;
-                    if (!emoji.vy) emoji.vy = Math.random() * 10 - 5;
-
-                    emoji.x += emoji.vx;
-                    emoji.y += emoji.vy;
-
-                    if (emoji.x < 0 || emoji.x > window.innerWidth) emoji.vx = -emoji.vx;
-                    if (emoji.y < navbar.offsetHeight || emoji.y > window.innerHeight) emoji.vy = -emoji.vy;
-
-                    emoji.style.left = emoji.x + 'px';
-                    emoji.style.top = emoji.y + 'px';
-                });
-            }
-
-            function checkCollision(emoji1, emoji2) {
-                const rect1 = emoji1.getBoundingClientRect();
-                const rect2 = emoji2.getBoundingClientRect();
-                return !(rect1.right < rect2.left || 
-                         rect1.left > rect2.right || 
-                         rect1.bottom < rect2.top || 
-                         rect1.top > rect2.bottom);
-            }
-
-            function updateState(emoji1, emoji2) {
-                if (emoji1.textContent === '✂️' && emoji2.textContent === '📄') {
-                    emoji2.textContent = '✂️';
-                    emoji2.className = "emoji scissors";
-                } else if (emoji1.textContent === '📄' && emoji2.textContent === '✂️') {
-                    emoji1.textContent = '✂️';
-                    emoji1.className = "emoji scissors";
-                } else if (emoji1.textContent === '🪨' && emoji2.textContent === '✂️') {
-                    emoji2.textContent = '🪨';
-                    emoji2.className = "emoji rock";
-                } else if (emoji1.textContent === '✂️' && emoji2.textContent === '🪨') {
-                    emoji1.textContent = '🪨';
-                    emoji1.className = "emoji rock";
-                } else if (emoji1.textContent === '📄' && emoji2.textContent === '🪨') {
-                    emoji2.textContent = '📄';
-                    emoji2.className = "emoji paper";
-                } else if (emoji1.textContent === '🪨' && emoji2.textContent === '📄') {
-                    emoji1.textContent = '📄';
-                    emoji1.className = "emoji paper";
-                }
-            }
-
-            function updateCounters() {
-                const scissorsCount = document.querySelectorAll('.scissors').length;
-                const rockCount = document.querySelectorAll('.rock').length;
-                const paperCount = document.querySelectorAll('.paper').length;
-                scissorsCountElement.textContent = scissorsCount;
-                rockCountElement.textContent = rockCount;
-                paperCountElement.textContent = paperCount;
-            }
-
-            function checkEndGame() {
-                const scissorsCount = document.querySelectorAll('.scissors').length;
-                const rockCount = document.querySelectorAll('.rock').length;
-                const paperCount = document.querySelectorAll('.paper').length;
-
-                if (scissorsCount === 0 && rockCount === 0 && paperCount > 0) {
-                    displayWinner('📄');
-                    stopAnimation();
-                } else if (scissorsCount === 0 && paperCount === 0 && rockCount > 0) {
-                    displayWinner('🪨');
-                    stopAnimation();
-                } else if (rockCount === 0 && paperCount === 0 && scissorsCount > 0) {
-                    displayWinner('✂️');
-                    stopAnimation();
-                } else if ((scissorsCount === 0 && rockCount === 0) || (scissorsCount === 0 && paperCount === 0) || (rockCount === 0 && paperCount === 0)) {
-                    displayWinner(scissorsCount === 0 ? '✂️' : rockCount === 0 ? '🪨' : '📄');
-                    stopAnimation();
-                }
-            }
-
-            function displayWinner(winner) {
-                winnerContainer.innerHTML = `<div id="winner">${winner}  Wins</div>`;
-                winnerContainer.classList.remove('hidden');
-                document.querySelector('#resetWinner').addEventListener('click', resetWinnerAnimation);
-            }
-
-            function stopAnimation() {
-                cancelAnimationFrame(animationId);
-            }
-
-            function animate() {
-                moveEmojis();
-
-                for (let i = 0; i < emojis.length; i++) {
-                    for (let j = i + 1; j < emojis.length; j++) {
-                        if (checkCollision(emojis[i], emojis[j])) {
-                            updateState(emojis[i], emojis[j]);
-                        }
-                    }
-                }
-                updateCounters();
-                checkEndGame();
-                animationId = requestAnimationFrame(animate);
-            }
-
-            animate();
-        }
-
-        function resetAnimation() {
-            formContainer.classList.remove('hidden');
-            resetButton.disabled = true;
             winnerContainer.classList.add('hidden');
-            winnerContainer.innerHTML = '';
+            progressBar.classList.remove('hidden');
+            resetBtn.disabled = false;
+            pauseBtn.disabled = false;
+            paused            = false;
+            pauseBtn.textContent = '⏸ Pause';
+
             emojisContainer.innerHTML = '';
-            cancelAnimationFrame(animationId);
+            emojiData = [];
+            counts    = { scissors: 0, rock: 0, paper: 0 };
+
+            const navH = navbar.offsetHeight;
+            const W    = window.innerWidth;
+            const H    = window.innerHeight;
+            const frag = document.createDocumentFragment();
+
+            spawnType('scissors', nScissors, frag, W, H, navH);
+            spawnType('rock',     nRock,     frag, W, H, navH);
+            spawnType('paper',    nPaper,    frag, W, H, navH);
+
+            emojisContainer.appendChild(frag);
+
+            // Apply initial positions before first paint
+            emojiData.forEach(d => {
+                d.el.style.left = d.x + 'px';
+                d.el.style.top  = d.y + 'px';
+            });
+
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(animate);
         }
 
-        function handleResize() {
-            const emojis = document.querySelectorAll('.emoji');
-            emojis.forEach(emoji => {
-                if (emoji.x > window.innerWidth) emoji.x = window.innerWidth;
-                if (emoji.y > window.innerHeight) emoji.y = window.innerHeight - navbar.offsetHeight;
+        function clampCount(raw) {
+            const n = parseInt(raw) || 0;
+            return Math.max(0, Math.min(200, n));
+        }
+
+        function spawnType(type, count, frag, W, H, navH) {
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className   = `emoji ${type}`;
+                el.textContent = CHAR[type];
+                frag.appendChild(el);
+
+                // Ensure non-zero velocity so emojis always move
+                let vx = 0, vy = 0;
+                while (vx === 0) vx = (Math.random() * 2 - 1) * baseSpeed;
+                while (vy === 0) vy = (Math.random() * 2 - 1) * baseSpeed;
+
+                emojiData.push({
+                    el,
+                    x: Math.random() * (W - 30),
+                    y: Math.random() * (H - navH - 30) + navH,
+                    vx, vy,
+                    type,
+                });
+                counts[type]++;
+            }
+        }
+
+        // ── Animation loop ────────────────────────────────────────────────────
+        function animate() {
+            moveEmojis();
+            checkCollisions();
+            updateCounters();
+
+            if (checkEndGame()) {
+                animationId = null;
+                pauseBtn.disabled = true;
+                return;
+            }
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // ── Movement ──────────────────────────────────────────────────────────
+        function moveEmojis() {
+            const navH = navbar.offsetHeight;
+            const W    = window.innerWidth;
+            const H    = window.innerHeight;
+
+            if (chaseMode) applyChaseVelocities();
+
+            emojiData.forEach(d => {
+                d.x += d.vx;
+                d.y += d.vy;
+
+                // Bounce off walls (clamp + reverse component)
+                if (d.x < 0)      { d.x = 0;      d.vx =  Math.abs(d.vx); }
+                else if (d.x > W - 24) { d.x = W - 24; d.vx = -Math.abs(d.vx); }
+
+                if (d.y < navH)   { d.y = navH;   d.vy =  Math.abs(d.vy); }
+                else if (d.y > H - 24) { d.y = H - 24; d.vy = -Math.abs(d.vy); }
+
+                d.el.style.left = d.x + 'px';
+                d.el.style.top  = d.y + 'px';
             });
         }
 
-        window.addEventListener('resize', handleResize);
+        // Chase mode: steer toward nearest prey, flee from nearby predator
+        function applyChaseVelocities() {
+            // Group by type for fast lookup
+            const byType = { scissors: [], rock: [], paper: [] };
+            emojiData.forEach(d => byType[d.type].push(d));
+
+            emojiData.forEach(d => {
+                const preyType    = BEATS[d.type];
+                const predType    = PREY_OF[d.type];
+
+                let targetVx = d.vx;
+                let targetVy = d.vy;
+
+                // Chase nearest prey
+                const nearest = nearestOf(d, byType[preyType]);
+                if (nearest) {
+                    const dx  = nearest.x - d.x;
+                    const dy  = nearest.y - d.y;
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    targetVx  = (dx / len) * baseSpeed;
+                    targetVy  = (dy / len) * baseSpeed;
+                }
+
+                // Override: flee if a predator is very close
+                const threat = nearestOf(d, byType[predType]);
+                if (threat) {
+                    const dx   = threat.x - d.x;
+                    const dy   = threat.y - d.y;
+                    const dist = dx * dx + dy * dy;
+                    if (dist < 150 * 150) {
+                        const len = Math.sqrt(dist) || 1;
+                        targetVx  = -(dx / len) * baseSpeed * 1.5;
+                        targetVy  = -(dy / len) * baseSpeed * 1.5;
+                    }
+                }
+
+                // Smooth steering (lerp)
+                d.vx = d.vx * 0.65 + targetVx * 0.35;
+                d.vy = d.vy * 0.65 + targetVy * 0.35;
+            });
+        }
+
+        function nearestOf(origin, candidates) {
+            let best = null, bestDist = Infinity;
+            for (let i = 0; i < candidates.length; i++) {
+                const c = candidates[i];
+                const dx = c.x - origin.x, dy = c.y - origin.y;
+                const d  = dx * dx + dy * dy;
+                if (d < bestDist) { bestDist = d; best = c; }
+            }
+            return best;
+        }
+
+        // ── Collision & conversion ────────────────────────────────────────────
+        function checkCollisions() {
+            const SIZE = 24;
+            for (let i = 0; i < emojiData.length; i++) {
+                const a = emojiData[i];
+                for (let j = i + 1; j < emojiData.length; j++) {
+                    const b = emojiData[j];
+                    if (a.type === b.type) continue;
+                    if (Math.abs(a.x - b.x) < SIZE && Math.abs(a.y - b.y) < SIZE) {
+                        if (BEATS[a.type] === b.type) {
+                            convertEmoji(b, a.type);
+                        } else if (BEATS[b.type] === a.type) {
+                            convertEmoji(a, b.type);
+                        }
+                    }
+                }
+            }
+        }
+
+        function convertEmoji(data, newType) {
+            counts[data.type]--;
+            counts[newType]++;
+            data.type          = newType;
+            data.el.textContent = CHAR[newType];
+            data.el.className   = `emoji ${newType}`;
+
+            // Flash effect: restart animation by removing then adding the class
+            data.el.classList.remove('converting');
+            void data.el.offsetWidth; // force reflow to restart CSS animation
+            data.el.classList.add('converting');
+            data.el.addEventListener('animationend', () => {
+                data.el.classList.remove('converting');
+            }, { once: true });
+        }
+
+        // ── HUD updates ───────────────────────────────────────────────────────
+        function updateCounters() {
+            scissorsCountEl.textContent = counts.scissors;
+            rockCountEl.textContent     = counts.rock;
+            paperCountEl.textContent    = counts.paper;
+
+            const total = counts.scissors + counts.rock + counts.paper;
+            if (total > 0) {
+                barScissors.style.width = (counts.scissors / total * 100) + '%';
+                barRock.style.width     = (counts.rock     / total * 100) + '%';
+                barPaper.style.width    = (counts.paper    / total * 100) + '%';
+            }
+        }
+
+        // ── End-game check ────────────────────────────────────────────────────
+        function checkEndGame() {
+            const alive = Object.keys(counts).filter(t => counts[t] > 0);
+            if (alive.length === 1) {
+                displayWinner(alive[0]);
+                return true;
+            }
+            return false;
+        }
+
+        function displayWinner(type) {
+            winnerContainer.innerHTML = `
+                <span id="winner">${CHAR[type]}</span>
+                <div id="winner-label">Wins! 🏆</div>
+            `;
+            winnerContainer.classList.remove('hidden');
+        }
+
+        // ── Pause / Resume ────────────────────────────────────────────────────
+        function togglePause() {
+            paused = !paused;
+            pauseBtn.textContent = paused ? '▶ Weiter' : '⏸ Pause';
+            if (!paused) {
+                animationId = requestAnimationFrame(animate);
+            } else {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        // ── Reset ─────────────────────────────────────────────────────────────
+        function resetAnimation() {
+            if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+            paused    = false;
+            emojiData = [];
+            counts    = { scissors: 0, rock: 0, paper: 0 };
+            emojisContainer.innerHTML = '';
+            winnerContainer.classList.add('hidden');
+            winnerContainer.innerHTML = '';
+            progressBar.classList.add('hidden');
+            formContainer.classList.remove('hidden');
+            resetBtn.disabled    = true;
+            pauseBtn.disabled    = true;
+            pauseBtn.textContent = '⏸ Pause';
+            updateCounters();
+        }
+
+        // ── Window resize ─────────────────────────────────────────────────────
+        window.addEventListener('resize', () => {
+            const W    = window.innerWidth;
+            const H    = window.innerHeight;
+            const navH = navbar.offsetHeight;
+            emojiData.forEach(d => {
+                if (d.x > W - 24) d.x = W - 24;
+                if (d.y > H - 24) d.y = H - 24;
+                if (d.y < navH)   d.y = navH;
+            });
+        });
     </script>
 </body>
 </html>
-
-
